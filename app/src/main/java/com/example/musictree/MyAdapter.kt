@@ -36,12 +36,9 @@ class MyAdapter(var mysong:List<Data>):RecyclerView.Adapter<MyAdapter.ViewHolder
             intent.putExtra("artistName", songs.artist)
             intent.putExtra("songCover", songs.cover)
             intent.putExtra("songURL", songs.url)
+            intent.putExtra("songId",songs.id)
+            intent.putExtra("backColor",songs.accent)
             holder.itemView.context.startActivity(intent)
-
-
-
-
-
         }
 
 

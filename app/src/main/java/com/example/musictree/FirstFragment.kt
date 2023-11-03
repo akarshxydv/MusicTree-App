@@ -1,10 +1,13 @@
 package com.example.musictree
 
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +35,7 @@ class FirstFragment : Fragment() {
             if(result!=null){
                 var res= result.body()?.data!!
 //                var toptrack=res.filter { it.top_track }
-//                var top=res.filter { it.id==1 }
+               // var top=res.filter { it.id==1 }
                 myAdapter=MyAdapter(res)
                 recyclerView.adapter=myAdapter
             }

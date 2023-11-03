@@ -70,4 +70,9 @@ dependencies {
 
     //img library
     implementation ("com.squareup.picasso:picasso:2.8")
+
+    // circular img
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+
+    implementation ("com.airbnb.android:lottie:3.4.0")
 }

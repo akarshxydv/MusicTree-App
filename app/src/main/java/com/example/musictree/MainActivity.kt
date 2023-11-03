@@ -26,8 +26,8 @@ class MainActivity : AppCompatActivity() {
         viewPager2=findViewById(R.id.viewPager)
         adapter= FragmentPageAdapter(supportFragmentManager,lifecycle)
 
-        tabLayout.addTab(tabLayout.newTab().setText("For You"))
-        tabLayout.addTab(tabLayout.newTab().setText("Top Track"))
+        tabLayout.addTab(tabLayout.newTab().setText("                               For You                            "))
+        tabLayout.addTab(tabLayout.newTab().setText("                          Top Track                           "))
 
         viewPager2.adapter=adapter
 
