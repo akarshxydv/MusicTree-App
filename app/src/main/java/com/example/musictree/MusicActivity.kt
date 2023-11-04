@@ -1,12 +1,14 @@
 package com.example.musictree
 
 import android.graphics.Color
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.view.WindowManager
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import com.example.musictree.databinding.ActivityMusicBinding
@@ -14,6 +16,9 @@ import com.squareup.picasso.Picasso
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
 
 
 class MusicActivity : AppCompatActivity() {
@@ -27,6 +32,8 @@ class MusicActivity : AppCompatActivity() {
         binding=ActivityMusicBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
+        medialPlayer= MediaPlayer()
         var songName=intent.getStringExtra("songName")
         var artistName=intent.getStringExtra("artistName")
         var songCover=intent.getStringExtra("songCover")
@@ -36,14 +43,65 @@ class MusicActivity : AppCompatActivity() {
 
         changeStatusBarColor(backColor!!)
         //window.statusBarColor = ContextCompat.getColor(this, Color.parseColor("${backColor}")
-        binding.artistname.text=artistName.toString()
-        binding.songname.text=songName.toString()
-       binding.layoutmusic.setBackgroundColor(Color.parseColor("${backColor}"))
-        Picasso.get().load("https://cms.samespace.com/assets/${songCover}").into(binding.songImg)
-        medialPlayer=MediaPlayer.create(this,songURL!!.toUri())
-        binding.seekbar.progress=0
-        binding.seekbar.max=medialPlayer.duration
-        medialPlayer.start()
+
+        medialPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
+        try {
+            binding.artistname.text = artistName.toString()
+            binding.songname.text = songName.toString()
+            binding.layoutmusic.setBackgroundColor(Color.parseColor("${backColor}"))
+            Picasso.get().load("https://cms.samespace.com/assets/${songCover}")
+                .into(binding.songImg)
+
+            //medialPlayer = MediaPlayer.create(this, songURL!!.toUri())
+            try{
+                medialPlayer.setDataSource(songURL)
+            }catch (e:Exception){
+                e.printStackTrace()
+            }
+            //medialPlayer.prepareAsync()
+            medialPlayer.prepare()
+
+            medialPlayer.setOnPreparedListener {
+                binding.seekbar.progress = 0
+                binding.seekbar.max = medialPlayer.duration
+                binding.totalTime.text = formatDuration(medialPlayer.duration)
+                medialPlayer.start()
+            }
+                medialPlayer.setOnErrorListener { mp, what, extra ->
+                    // Handle media errors and move to the next song
+                    when (what) {
+                        MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK -> {
+                            Toast.makeText(this, "Song is not availble", Toast.LENGTH_SHORT).show()
+                        }
+                        MediaPlayer.MEDIA_ERROR_SERVER_DIED -> {
+                            Toast.makeText(this, "Song is not availble", Toast.LENGTH_SHORT).show()
+                        }
+                        MediaPlayer.MEDIA_ERROR_UNKNOWN -> {
+                            Toast.makeText(this, "Song is not availble", Toast.LENGTH_SHORT).show()
+                            medialPlayer.release()
+                        }
+                        MediaPlayer.MEDIA_ERROR_IO -> {
+                            Toast.makeText(this, "Song is not availble", Toast.LENGTH_SHORT).show()
+                        }
+                        MediaPlayer.MEDIA_ERROR_TIMED_OUT -> {
+                            Toast.makeText(this, "Song is not availble", Toast.LENGTH_SHORT).show()
+                            medialPlayer.release()
+                        }
+                        MediaPlayer.MEDIA_ERROR_UNSUPPORTED -> {
+                            Toast.makeText(this, "Song is not availble", Toast.LENGTH_SHORT).show()
+                            medialPlayer.release()
+                        }
+                        else -> {
+                            Toast.makeText(this, "Song is not availble", Toast.LENGTH_SHORT).show()
+                            medialPlayer.release()
+                        }
+                    }
+                    true
+                }
+
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
         binding.play.setOnClickListener(){
             if(!medialPlayer.isPlaying){
                 medialPlayer.start()
@@ -56,7 +114,7 @@ class MusicActivity : AppCompatActivity() {
 
         binding.next.setOnClickListener(){
             songId+=1
-            medialPlayer.stop()
+            //medialPlayer.stop()
             val apicall=RetrofitBuild.getInstance().create(apiInterface::class.java)
             GlobalScope.launch(Dispatchers.Main) {
                 val result=apicall.getSong()
@@ -72,10 +130,28 @@ class MusicActivity : AppCompatActivity() {
                     changeStatusBarColor(ele.accent)
                     binding.layoutmusic.setBackgroundColor(Color.parseColor("${ele.accent}"))
                     Picasso.get().load("https://cms.samespace.com/assets/${songcover}").into(binding.songImg)
-                  medialPlayer=MediaPlayer.create(this@MusicActivity,songUrl!!.toUri())
-                    binding.seekbar.progress=0
-                    binding.seekbar.max=medialPlayer.duration
-                    medialPlayer.start()
+                  //medialPlayer=MediaPlayer.create(this@MusicActivity,songUrl!!.toUri())
+                    medialPlayer.reset()
+                    medialPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
+                    try {
+                        medialPlayer.setDataSource(songUrl)
+                        medialPlayer.prepare()
+                        medialPlayer.setOnPreparedListener {
+                            binding.seekbar.progress=0
+                            binding.seekbar.max=medialPlayer.duration
+                            binding.totalTime.text=formatDuration(medialPlayer.duration)
+                            medialPlayer.start()
+                        }
+                        medialPlayer.setOnErrorListener { mp, what, extra ->
+                            // Handle media errors and move to the next song
+                            Toast.makeText(this@MusicActivity,"Song is not availble",Toast.LENGTH_SHORT).show()
+                            false
+                        }
+
+                    }catch (e:Exception){
+                        e.printStackTrace()
+                    }
+
                 }
                  }
             }
@@ -84,7 +160,7 @@ class MusicActivity : AppCompatActivity() {
         }
         binding.previous.setOnClickListener(){
             if(songId>1){songId-=1}
-            medialPlayer.stop()
+            //medialPlayer.stop()
             val apicall=RetrofitBuild.getInstance().create(apiInterface::class.java)
             GlobalScope.launch(Dispatchers.Main) {
                 val result=apicall.getSong()
@@ -100,10 +176,28 @@ class MusicActivity : AppCompatActivity() {
                         changeStatusBarColor(ele.accent)
                         binding.layoutmusic.setBackgroundColor(Color.parseColor("${ele.accent}"))
                         Picasso.get().load("https://cms.samespace.com/assets/${songcover}").into(binding.songImg)
-                        medialPlayer=MediaPlayer.create(this@MusicActivity,songUrl!!.toUri())
-                        binding.seekbar.progress=0
-                        binding.seekbar.max=medialPlayer.duration
-                        medialPlayer.start()
+                        //medialPlayer=MediaPlayer.create(this@MusicActivity,songUrl!!.toUri())
+
+                        medialPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
+                        medialPlayer.reset()
+                        try {
+                            medialPlayer.setDataSource(songUrl)
+                            medialPlayer.prepare()
+                            medialPlayer.setOnPreparedListener {
+                                binding.seekbar.progress=0
+                                binding.seekbar.max=medialPlayer.duration
+                                binding.totalTime.text=formatDuration(medialPlayer.duration)
+                                medialPlayer.start()
+                            }
+                            medialPlayer.setOnErrorListener { mp, what, extra ->
+                                // Handle media errors and move to the next song
+                                Toast.makeText(this@MusicActivity,"Song is not availble",Toast.LENGTH_SHORT).show()
+                                false
+                            }
+
+                        }catch (e:Exception){
+                            e.printStackTrace()
+                        }
                     }
                 }
             }
@@ -114,6 +208,7 @@ class MusicActivity : AppCompatActivity() {
                     if(changed){
 
                         medialPlayer.seekTo(progress)
+                        binding.currentTime.text=formatDuration(progress)
 
                     }
             }
@@ -127,7 +222,9 @@ class MusicActivity : AppCompatActivity() {
             }
         })
         runnable= Runnable {
+            val currentPosition = medialPlayer?.currentPosition ?: 0
             binding.seekbar.progress=medialPlayer.currentPosition
+            binding.currentTime.text=formatDuration(currentPosition)
             Handler().postDelayed(runnable,1000)
 
         }
@@ -154,4 +251,23 @@ class MusicActivity : AppCompatActivity() {
             window.statusBarColor = Color.parseColor(color)
         }
     }
+    private fun formatDuration(duration: Int): String {
+        val minutes = duration / 1000 / 60
+        val seconds = duration / 1000 % 60
+        return String.format("%02d:%02d", minutes, seconds)
+    }
+
+    private fun isURLValid(url: String?): Boolean {
+        try {
+            val connection = URL(url).openConnection() as HttpURLConnection
+            connection.requestMethod = "HEAD"
+            val responseCode = connection.responseCode
+            return responseCode == HttpURLConnection.HTTP_OK
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return false
+    }
+
+
 }

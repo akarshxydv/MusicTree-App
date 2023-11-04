@@ -40,10 +40,6 @@ class SecondFragment : Fragment() {
                 recyclerView.adapter=myAdapter
             }
         }
-
-
-
-
         return view
     }
 }
