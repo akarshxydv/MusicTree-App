@@ -7,14 +7,16 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 
 class FragmentPageAdapter(fragmentManager: FragmentManager,lifecycle:Lifecycle):FragmentStateAdapter(fragmentManager,lifecycle) {
     override fun getItemCount(): Int {
-            return 2
+            return 3
     }
 
     override fun createFragment(position: Int): Fragment {
         return if(position==0){
             FirstFragment()
-        }else{
+        }else if(position==1){
             SecondFragment()
+        }else{
+            localMusic()
         }
     }
 }

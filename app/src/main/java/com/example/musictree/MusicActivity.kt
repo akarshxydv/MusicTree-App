@@ -53,7 +53,9 @@ class MusicActivity : AppCompatActivity() {
                 .into(binding.songImg)
 
             //medialPlayer = MediaPlayer.create(this, songURL!!.toUri())
+
             try{
+                songURL=songURL!!.replace(" ","")
                 medialPlayer.setDataSource(songURL)
             }catch (e:Exception){
                 e.printStackTrace()
@@ -134,6 +136,7 @@ class MusicActivity : AppCompatActivity() {
                     medialPlayer.reset()
                     medialPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
                     try {
+                        songUrl=songUrl.replace(" ","")
                         medialPlayer.setDataSource(songUrl)
                         medialPlayer.prepare()
                         medialPlayer.setOnPreparedListener {
@@ -181,6 +184,7 @@ class MusicActivity : AppCompatActivity() {
                         medialPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
                         medialPlayer.reset()
                         try {
+                            songUrl=songUrl.replace(" ","")
                             medialPlayer.setDataSource(songUrl)
                             medialPlayer.prepare()
                             medialPlayer.setOnPreparedListener {
